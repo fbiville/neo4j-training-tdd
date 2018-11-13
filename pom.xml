@@ -76,6 +76,19 @@
       <version>${neo4j.version}</version>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>com.github.tomakehurst</groupId>
+      <artifactId>wiremock</artifactId>
+      <version>2.19.0</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-nop</artifactId>
+      <version>1.7.12</version>
+      <scope>test</scope>
+    </dependency>
+
   </dependencies>
 
   <build>
