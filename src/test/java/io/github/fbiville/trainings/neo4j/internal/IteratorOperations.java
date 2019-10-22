@@ -4,13 +4,17 @@ import java.util.Iterator;
 
 public class IteratorOperations {
 
-    public static long size(Iterator<?> result) {
-        long count = 0;
-        while (result.hasNext()) {
-            count++;
-            result.next();
-        }
+    private IteratorOperations() {
+    }
 
-        return count;
+    public static <T> T single(Iterator<T> iterator) {
+        if (!iterator.hasNext()) {
+            throw new RuntimeException("Expected 1 item, got 0");
+        }
+        T result = iterator.next();
+        if (iterator.hasNext()) {
+            throw new RuntimeException("Expected 1 item, got more");
+        }
+        return result;
     }
 }

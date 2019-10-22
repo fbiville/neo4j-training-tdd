@@ -1,12 +1,10 @@
 package io.github.fbiville.trainings.neo4j._2_traversal;
 
-import io.github.fbiville.trainings.neo4j.internal.GraphTests;
-import io.github.fbiville.trainings.neo4j.internal.MonkeyIslandGraph;
 import io.github.fbiville.trainings.neo4j.internal.StreamOperations;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
+import io.github.fbiville.trainings.neo4j.internal.db.local.MonkeyIslandGraphTests;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Order;
+import org.junit.jupiter.api.Test;
 import org.neo4j.graphdb.ConstraintViolationException;
 import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.Node;
@@ -28,19 +26,14 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.hamcrest.core.Is.isA;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-public class _1_IndexingTest extends GraphTests {
-
-    @Rule
-    public ExpectedException thrown = ExpectedException.none();
-
-    @Before
-    public void prepare() {
-        MonkeyIslandGraph.create(graphDb);
-    }
+@DisplayName("Getting familiar with all indexing APIs")
+public class _1_IndexingTest extends MonkeyIslandGraphTests {
 
     @Test
+    @DisplayName("index existing nodes with deprecated IndexManager")
+    @Order(211)
     public void should_index_existing_characters_by_name() {
         try (Transaction transaction = graphDb.beginTx()) {
             Index<Node> index = graphDb.index().forNodes("characters");
@@ -63,23 +56,25 @@ public class _1_IndexingTest extends GraphTests {
              */
             Iterator<Node> results = index.query("indexed_name:*\\ *");
             assertThat(results)
-                .hasSize(3)
-                .extracting(node -> node.getProperty("name"))
-                .containsOnly("Guybrush Threepwood", "Elaine Marley", "Largo LaGrande");
+                    .hasSize(3)
+                    .extracting(node -> node.getProperty("name"))
+                    .containsOnly("Guybrush Threepwood", "Elaine Marley", "Largo LaGrande");
             transaction.success();
         }
     }
 
     @Test
+    @DisplayName("index existing nodes with deprecated AutoIndexer")
+    @Order(212)
     public void should_automatically_index_names_in_upper_case() {
         try (Transaction transaction = graphDb.beginTx()) {
             AutoIndexer<Node> nodeAutoIndexer = graphDb.index().getNodeAutoIndexer();
             nodeAutoIndexer.setEnabled(true);
             nodeAutoIndexer.startAutoIndexingProperty("name");
             graphDb.findNodes(Label.label("Character"))
-                .forEachRemaining(node -> {
-                    node.setProperty("name", node.getProperty("name").toString().toUpperCase(Locale.ENGLISH));
-                });
+                    .forEachRemaining(node -> {
+                        node.setProperty("name", node.getProperty("name").toString().toUpperCase(Locale.ENGLISH));
+                    });
             transaction.success();
         }
 
@@ -90,14 +85,16 @@ public class _1_IndexingTest extends GraphTests {
             ReadableIndex<Node> index = nodeAutoIndexer.getAutoIndex();
             Iterator<Node> results = index.query("name:*\\ *");
             assertThat(results)
-                .hasSize(3)
-                .extracting(node -> node.getProperty("name"))
-                .containsOnly("GUYBRUSH THREEPWOOD", "ELAINE MARLEY", "LARGO LAGRANDE");
+                    .hasSize(3)
+                    .extracting(node -> node.getProperty("name"))
+                    .containsOnly("GUYBRUSH THREEPWOOD", "ELAINE MARLEY", "LARGO LAGRANDE");
             transaction.success();
         }
     }
 
     @Test
+    @DisplayName("index existing nodes with Schema")
+    @Order(213)
     public void should_create_index_for_character_names() {
         try (Transaction transaction = graphDb.beginTx()) {
             Schema schema = graphDb.schema();
@@ -118,11 +115,13 @@ public class _1_IndexingTest extends GraphTests {
     }
 
     @Test
+    @DisplayName("create a unicity constraint with Schema")
+    @Order(214)
     public void should_create_character_name_unicity_constraint() {
         try (Transaction transaction = graphDb.beginTx()) {
             graphDb.schema().constraintFor(Label.label("Character"))
-                .assertPropertyIsUnique("name")
-                .create();
+                    .assertPropertyIsUnique("name")
+                    .create();
             transaction.success();
         }
 
@@ -139,20 +138,23 @@ public class _1_IndexingTest extends GraphTests {
 
         // double-check the unicity constraint is active:
         // a character with the same name should not be inserted
-        thrown.expect(ConstraintViolationException.class);
-        thrown.expectMessage("already exists with label `Character` and property `name` = 'LeChuck'");
-        thrown.expectCause(isA(UniquePropertyValueValidationException.class));
-        try (Transaction transaction = graphDb.beginTx()) {
-            Node character = graphDb.createNode(Label.label("Character"));
-            character.setProperty("name", "LeChuck");
-            transaction.success();
-        }
+        assertThatThrownBy(() -> {
+            try (Transaction transaction = graphDb.beginTx()) {
+                Node character = graphDb.createNode(Label.label("Character"));
+                character.setProperty("name", "LeChuck");
+                transaction.success();
+            }
+            ;
+        }).isInstanceOf(ConstraintViolationException.class)
+                .hasMessageContaining("already exists with label `Character` and property `name` = 'LeChuck'")
+                .hasCauseInstanceOf(UniquePropertyValueValidationException.class);
+
     }
 
     private Collection<String> filter(String[] indices) {
         return StreamOperations.create(indices)
-            .filter(Predicate.isEqual("node_auto_index").negate())
-            .collect(Collectors.toList());
+                .filter(Predicate.isEqual("node_auto_index").negate())
+                .collect(Collectors.toList());
     }
 
 }

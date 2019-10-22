@@ -1,7 +1,9 @@
 package io.github.fbiville.trainings.neo4j._1_core_api;
 
-import io.github.fbiville.trainings.neo4j.internal.GraphTests;
-import org.junit.Test;
+import io.github.fbiville.trainings.neo4j.internal.db.local.EmptyGraphTests;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Order;
+import org.junit.jupiter.api.Test;
 import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
@@ -10,16 +12,18 @@ import org.neo4j.graphdb.Transaction;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.entry;
-import static org.assertj.core.api.Assertions.fail;
 
 /**
  * This class focuses on the core API for relationship creation.
  * NOTE: From now on, there will not be comments about removing `fail` calls but you still have to do it!
  */
-public class _2_RelationshipWriteTest extends GraphTests {
+@DisplayName("Getting familiar with core API for Relationship writes")
+public class _2_RelationshipWriteTest extends EmptyGraphTests {
 
     @Test
-    public void should_create_relationship_between_existing_nodes() {
+    @DisplayName("write a relationship between two *existing* nodes")
+    @Order(121)
+    void should_create_relationship_between_existing_nodes() {
         long guybrushInternalId, elaineInternalId;
         try (Transaction transaction = graphDb.beginTx()) {
             Node guybrush = graphDb.createNode(Label.label("Character"));
@@ -49,7 +53,9 @@ public class _2_RelationshipWriteTest extends GraphTests {
     }
 
     @Test
-    public void should_create_relationship_with_properties() {
+    @DisplayName("write a relationship with properties")
+    @Order(122)
+    void should_create_relationship_with_properties() {
         long guybrushInternalId, chuckInternalId;
         try (Transaction transaction = graphDb.beginTx()) {
             Node guybrush = graphDb.createNode(Label.label("Character"));
@@ -67,7 +73,7 @@ public class _2_RelationshipWriteTest extends GraphTests {
             Node chuck = graphDb.getNodeById(chuckInternalId);
 
             Relationship relationship = guybrush
-                .createRelationshipTo(chuck, RelationshipType.withName("HATES"));
+                    .createRelationshipTo(chuck, RelationshipType.withName("HATES"));
             relationship.setProperty("reason", "Both Guybrush and LeChuck love Elaine");
             relationship.setProperty("level", "Extreme");
             transaction.success();
@@ -77,8 +83,8 @@ public class _2_RelationshipWriteTest extends GraphTests {
             Relationship relationship = graphOperations.getSingleRelationship();
             assertThat(relationship.getType().name()).isEqualTo("HATES");
             assertThat(relationship.getAllProperties()).containsOnly(
-                entry("reason", "Both Guybrush and LeChuck love Elaine"),
-                entry("level", "Extreme")
+                    entry("reason", "Both Guybrush and LeChuck love Elaine"),
+                    entry("level", "Extreme")
             );
             assertThat(relationship.getStartNode().getId()).isEqualTo(guybrushInternalId); // DON'T DO THIS IN REAL CODE
             assertThat(relationship.getEndNode().getId()).isEqualTo(chuckInternalId); // DON'T DO THIS IN REAL CODE
@@ -86,7 +92,9 @@ public class _2_RelationshipWriteTest extends GraphTests {
     }
 
     @Test
-    public void should_create_relationship_between_two_new_nodes() {
+    @DisplayName("write a relationship between two *new* nodes")
+    @Order(123)
+    void should_create_relationship_between_two_new_nodes() {
         try (Transaction transaction = graphDb.beginTx()) {
             Node character1 = graphDb.createNode(Label.label("Character"));
             Node character2 = graphDb.createNode(Label.label("Character"));
@@ -99,22 +107,24 @@ public class _2_RelationshipWriteTest extends GraphTests {
             Relationship singleRelationship = graphOperations.getSingleRelationship();
             assertThat(singleRelationship.getType().name()).isEqualTo("FIGHTS");
             assertThat(singleRelationship.getAllProperties()).containsOnly(
-                entry("fight_type", "Insult sword fighting")
+                    entry("fight_type", "Insult sword fighting")
             );
             Node startNode = singleRelationship.getStartNode();
             Node endNode = singleRelationship.getEndNode();
             assertThat(startNode)
-                .isNotEqualTo(endNode)
-                .extracting(graphOperations::getSingleLabelName)
-                .containsOnly("Character");
+                    .isNotEqualTo(endNode)
+                    .extracting(graphOperations::getSingleLabelName)
+                    .containsOnly("Character");
             assertThat(endNode)
-                .extracting(graphOperations::getSingleLabelName)
-                .containsOnly("Character");
+                    .extracting(graphOperations::getSingleLabelName)
+                    .containsOnly("Character");
         }
     }
 
     @Test
-    public void should_update_the_relationship_property() {
+    @DisplayName("update a relationship property")
+    @Order(124)
+    void should_update_the_relationship_property() {
         try (Transaction transaction = graphDb.beginTx()) {
             Node node = graphDb.createNode();
             // Fun fact: a node can be linked to itself!
@@ -128,7 +138,7 @@ public class _2_RelationshipWriteTest extends GraphTests {
             Relationship singleRelationship = graphOperations.getSingleRelationship();
             assertThat(singleRelationship.getType().name()).isEqualTo("TALKS");
             assertThat(singleRelationship.getAllProperties()).containsOnly(
-                entry("message", "Hello wirld")
+                    entry("message", "Hello wirld")
             );
         }
 
@@ -142,13 +152,15 @@ public class _2_RelationshipWriteTest extends GraphTests {
             Relationship singleRelationship = graphOperations.getSingleRelationship();
             assertThat(singleRelationship.getType().name()).isEqualTo("TALKS");
             assertThat(singleRelationship.getAllProperties()).containsOnly(
-                entry("message", "Hello world")
+                    entry("message", "Hello world")
             );
         }
     }
 
     @Test
-    public void should_remove_a_relationship() {
+    @DisplayName("remove a relationship")
+    @Order(125)
+    void should_remove_a_relationship() {
         try (Transaction transaction = graphDb.beginTx()) {
             graphDb.createNode().createRelationshipTo(graphDb.createNode(), RelationshipType.withName("TALKS"));
             transaction.success();

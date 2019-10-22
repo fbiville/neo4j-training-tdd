@@ -1,22 +1,26 @@
 package io.github.fbiville.trainings.neo4j._1_core_api;
 
-import io.github.fbiville.trainings.neo4j.internal.GraphTests;
-import org.junit.Test;
+import io.github.fbiville.trainings.neo4j.internal.db.local.EmptyGraphTests;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Order;
+import org.junit.jupiter.api.Test;
 import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Transaction;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.entry;
-import static org.assertj.core.api.Assertions.fail;
 
 /**
  * This class focuses on the core API for node creation.
  */
-public class _1_NodeWriteTest extends GraphTests {
+@DisplayName("Getting familiar with core API for Node writes")
+public class _1_NodeWriteTest extends EmptyGraphTests {
 
     @Test
-    public void writes_simple_node() {
+    @DisplayName("write a simple node")
+    @Order(111)
+    void writes_simple_node() {
         // every operation must be surrounded by a transaction
         try (Transaction transaction = graphDb.beginTx()) {
             graphDb.createNode();
@@ -37,7 +41,9 @@ public class _1_NodeWriteTest extends GraphTests {
     }
 
     @Test
-    public void writes_node_with_a_single_label() {
+    @DisplayName("write a node with a label")
+    @Order(112)
+    void writes_node_with_a_single_label() {
         try (Transaction transaction = graphDb.beginTx()) {
             graphDb.createNode(Label.label("Video game"));
             transaction.success();
@@ -52,7 +58,9 @@ public class _1_NodeWriteTest extends GraphTests {
     }
 
     @Test
-    public void writes_node_with_several_labels() {
+    @DisplayName("write a node with several label")
+    @Order(113)
+    void writes_node_with_several_labels() {
         try (Transaction transaction = graphDb.beginTx()) {
             graphDb.createNode(Label.label("Video game"), Label.label("Adventure"));
             transaction.success();
@@ -61,15 +69,17 @@ public class _1_NodeWriteTest extends GraphTests {
         try (Transaction ignored = graphDb.beginTx()) {
             Node node = graphOperations.getSingleNode();
             assertThat(node.getLabels())
-                .extracting(Label::name)
-                .containsOnly("Video game", "Adventure");
+                    .extracting(Label::name)
+                    .containsOnly("Video game", "Adventure");
             assertThat(node.getAllProperties()).isEmpty();
             assertThat(node.getRelationships()).isEmpty();
         }
     }
 
     @Test
-    public void writes_node_with_properties() {
+    @DisplayName("write a node with several properties")
+    @Order(114)
+    void writes_node_with_properties() {
         try (Transaction transaction = graphDb.beginTx()) {
             Node node = graphDb.createNode();
             node.setProperty("title", "Monkey Island");
@@ -81,15 +91,17 @@ public class _1_NodeWriteTest extends GraphTests {
             Node node = graphOperations.getSingleNode();
             assertThat(node.getLabels()).isEmpty();
             assertThat(node.getAllProperties()).containsOnly(
-                entry("title", "Monkey Island"),
-                entry("price_in_EUR", 50)
+                    entry("title", "Monkey Island"),
+                    entry("price_in_EUR", 50)
             );
             assertThat(node.getRelationships()).isEmpty();
         }
     }
 
     @Test
-    public void writes_node_with_several_labels_and_properties() {
+    @DisplayName("write a node with several labels and properties")
+    @Order(115)
+    void writes_node_with_several_labels_and_properties() {
         try (Transaction transaction = graphDb.beginTx()) {
             Node node = graphDb.createNode(Label.label("Character"), Label.label("Pirate"));
             node.setProperty("name", "Guybrush Threepwood");
@@ -100,18 +112,20 @@ public class _1_NodeWriteTest extends GraphTests {
         try (Transaction ignored = graphDb.beginTx()) {
             Node node = graphOperations.getSingleNode();
             assertThat(node.getLabels())
-                .extracting(Label::name)
-                .containsOnly("Character", "Pirate");
+                    .extracting(Label::name)
+                    .containsOnly("Character", "Pirate");
             assertThat(node.getAllProperties()).containsOnly(
-                entry("name", "Guybrush Threepwood"),
-                entry("age", 42)
+                    entry("name", "Guybrush Threepwood"),
+                    entry("age", 42)
             );
             assertThat(node.getRelationships()).isEmpty();
         }
     }
-    
+
     @Test
-    public void deletes_a_node() {
+    @DisplayName("delete a node")
+    @Order(116)
+    void deletes_a_node() {
         try (Transaction transaction = graphDb.beginTx()) {
             graphDb.createNode();
             transaction.success();
@@ -130,7 +144,9 @@ public class _1_NodeWriteTest extends GraphTests {
     }
 
     @Test
-    public void removes_a_property() {
+    @DisplayName("remove a property from a node")
+    @Order(117)
+    void removes_a_property() {
         try (Transaction transaction = graphDb.beginTx()) {
             Node largo = graphDb.createNode(Label.label("Character"));
             largo.setProperty("name", "Largo");
@@ -143,8 +159,8 @@ public class _1_NodeWriteTest extends GraphTests {
             Node largo = graphOperations.getSingleNode();
             assertThat(largo.getLabels()).extracting(Label::name).containsOnly("Character");
             assertThat(largo.getAllProperties()).containsOnly(
-                entry("name", "Largo"),
-                entry("height", "Small")
+                    entry("name", "Largo"),
+                    entry("height", "Small")
             );
         }
 
@@ -159,7 +175,7 @@ public class _1_NodeWriteTest extends GraphTests {
             Node largo = graphOperations.getSingleNode();
             assertThat(largo.getLabels()).extracting(Label::name).containsOnly("Character");
             assertThat(largo.getAllProperties()).containsOnly(
-                entry("name", "Largo")
+                    entry("name", "Largo")
             );
         }
     }
